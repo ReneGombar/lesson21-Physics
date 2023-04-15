@@ -1,6 +1,9 @@
+//Physics library: npm install --save cannon
+
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
+import CANNON, { Material } from 'cannon'
 
 /**
  * Debug
@@ -31,9 +34,59 @@ const environmentMapTexture = cubeTextureLoader.load([
     '/textures/environmentMaps/0/nz.png'
 ])
 
+/**Physics World */
+const world = new CANNON.World()
+
+//add gravity
+world.gravity.set(0,-9.82,0)
+
+//gui.add('gravity',world.gravity.y).min(0).max(20).step(0.01)
+
+/**Create material for rigid body for sphere and plane*/
+const concreteMaterial = new CANNON.Material('concrete')
+const plasticMaterial = new CANNON.Material('plastic')
+
+//create constact material between the two material
+const contactMaterial = new CANNON.ContactMaterial(
+    concreteMaterial,
+    plasticMaterial,
+    {
+        friction: 0.1,
+        restitution: 0.8
+    }
+)
+world.addContactMaterial(contactMaterial)
+
+//create a collision shape for the sphere
+const sphereShape = new CANNON.Sphere(0.5)
+
+const sphereBody = new CANNON.Body({
+    mass: 1,
+    position : new CANNON.Vec3(0,3,0),
+    shape: sphereShape,
+    material: plasticMaterial
+})
+
+world.addBody(sphereBody)
+
+//create a collision body for a static floor (mass:0), dont forget to rotate it like the 3d floor
+const floorShape = new CANNON.Plane()
+const floorBody = new CANNON.Body({
+    mass: 0,
+    shape: floorShape,
+    material: concreteMaterial
+})
+// to rotate in Cannon we use querternion
+floorBody.quaternion.setFromAxisAngle(
+    new CANNON.Vec3(1,0,0),
+    - Math.PI *0.5
+)
+world.addBody(floorBody)
+
+
 /**
  * Test sphere
- */
+*/
 const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(0.5, 32, 32),
     new THREE.MeshStandardMaterial({
@@ -42,14 +95,14 @@ const sphere = new THREE.Mesh(
         envMap: environmentMapTexture,
         envMapIntensity: 0.5
     })
-)
-sphere.castShadow = true
-sphere.position.y = 0.5
-scene.add(sphere)
-
-/**
- * Floor
- */
+    )
+    sphere.castShadow = true
+    sphere.position.y = 0.5
+    scene.add(sphere)
+    
+    /**
+     * Floor
+    */
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(10, 10),
     new THREE.MeshStandardMaterial({
@@ -59,13 +112,13 @@ const floor = new THREE.Mesh(
         envMap: environmentMapTexture,
         envMapIntensity: 0.5
     })
-)
+    )
 floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
 
 /**
- * Lights
+* Lights
  */
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.7)
 scene.add(ambientLight)
@@ -131,11 +184,21 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  * Animate
  */
 const clock = new THREE.Clock()
+let oldElapsedTime
 
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - oldElapsedTime
+    oldElapsedTime = elapsedTime
 
+    //Update Physics World
+    // 1/60 fps, deltaTime between ticks, 3- is the ticks that 3dworld can catch up with physics world
+    world.step(1/60, deltaTime, 3)
+
+    //Update the 3d World from physics world
+    sphere.position.copy(sphereBody.position)
+    
     // Update controls
     controls.update()
 
