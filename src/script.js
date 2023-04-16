@@ -5,7 +5,9 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import * as CANNON from 'cannon-es'
+
+//import * as CANNON from 'cannon-es'
+import CANNON from 'cannon'
 
 /**
  * Debug
@@ -251,8 +253,6 @@ const createBox = (width,height,depth,position) =>{
     body.position.copy(position)
     body.addEventListener('collide',playHitSound)
     world.addBody(body)
-    body.applyForce(new CANNON.Vec3(0,200,0))
-    console.log(body)
     //Save in objects array to update
     objectsToUpdate.push({
         mesh:mesh,
@@ -290,7 +290,7 @@ const createSphere = (radius,position) =>{
 }
 
 //createSphere(0.5,{x:0,y:2,z:0})
-createBox(1,1,1,{x:0,y:2,z:0})
+createBox(1.5,1,1,{x:0,y:2,z:0})
 
 /**
  * Animate
@@ -310,7 +310,8 @@ const tick = () =>
 
     //Loop throught the objects array
     for (const object of objectsToUpdate)
-    {
+    {   
+        console.log(object.body.position)
         object.mesh.position.copy(object.body.position)
         object.mesh.quaternion.copy(object.body.quaternion)
     }
