@@ -6,8 +6,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 
-//import * as CANNON from 'cannon-es'
-import CANNON from 'cannon'
+import * as CANNON from 'cannon-es'
+//import CANNON from 'cannon'
 
 /**
  * Debug
@@ -35,7 +35,7 @@ debugObject.createBox = () => {
         Math.random() ,
         {
             x:(Math.random() - 0.5) * 3,
-            y:3,
+            y:10,
             z:(Math.random() - 0.5) * 3
         })
 }
@@ -71,7 +71,7 @@ const hitSound = new Audio('/sounds/hit.mp3')
 const playHitSound  = (collision) => {
     const impactStrenght = collision.contact.getImpactVelocityAlongNormal()
     if (impactStrenght > 2) {
-        hitSound.volume = impactStrenght / 10
+        hitSound.volume = impactStrenght/10 < 1 ? impactStrenght/10 : 1 
         hitSound.currentTime = 0
         hitSound.play()
     }
@@ -260,7 +260,7 @@ const createBox = (width,height,depth,position) =>{
     })
 }
 
-//function to create a sphere and rigidbody
+//function to create a sphere MESH and PHYSICS body
 const createSphere = (radius,position) =>{
     // THREEjs Mesh
     const mesh = new THREE.Mesh(sphereGeometry,sphereMaterial)
@@ -290,7 +290,7 @@ const createSphere = (radius,position) =>{
 }
 
 //createSphere(0.5,{x:0,y:2,z:0})
-createBox(1.5,1,1,{x:0,y:2,z:0})
+//createBox(1.5,1,1,{x:0,y:2,z:0})
 
 /**
  * Animate
@@ -306,12 +306,13 @@ const tick = () =>
     
     //Update Physics World
     // 1/60 fps, deltaTime between ticks, 3- is the ticks that 3dworld can catch up with physics world
-    world.step(1/60, deltaTime, 3)
+    // world.step(1/60, deltaTime, 3) //works in cannon not in cannon-es
+    world.step(1/60)
 
     //Loop throught the objects array
     for (const object of objectsToUpdate)
     {   
-        console.log(object.body.position)
+        //console.log(object.body.position)
         object.mesh.position.copy(object.body.position)
         object.mesh.quaternion.copy(object.body.quaternion)
     }
