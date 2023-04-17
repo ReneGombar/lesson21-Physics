@@ -280,7 +280,7 @@ const createSphere = (radius,position) =>{
         material:plasticMaterial
     })
     body.addEventListener('collide',playHitSound)
-
+    body.sleepSpeedLimit = 0.5
     body.position.copy(position)
     world.addBody(body)
 
