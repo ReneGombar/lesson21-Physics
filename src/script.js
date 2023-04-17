@@ -115,7 +115,7 @@ gui.add(world.gravity,'y')
 const concreteMaterial = new CANNON.Material('concrete')
 const plasticMaterial = new CANNON.Material('plastic')
 
-//create PHYSICS constact material between the two materials
+//create PHYSICS contact material between the two materials
 const contactMaterial = new CANNON.ContactMaterial(
     concreteMaterial,
     plasticMaterial,
@@ -250,6 +250,7 @@ const createBox = (width,height,depth,position) =>{
         shape:shape,
         material:plasticMaterial
     })
+    body.sleepSpeedLimit = 0.5
     body.position.copy(position)
     body.addEventListener('collide',playHitSound)
     world.addBody(body)
@@ -258,6 +259,7 @@ const createBox = (width,height,depth,position) =>{
         mesh:mesh,
         body:body
     })
+    console.log(body)
 }
 
 //function to create a sphere MESH and PHYSICS body
